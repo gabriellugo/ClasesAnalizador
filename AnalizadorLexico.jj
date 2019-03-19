@@ -1,19 +1,57 @@
 PARSER_BEGIN(lexer)
+package Analizador;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Dictionary;
+import java.util.HashMap;
+
 class lexer
-{  
+{
+   public static HashMap<Integer,Identificador> tablaSimbolos = new HashMap<Integer,Identificador>();
+   static int pos=0;
+   static String modificadorTemp, tipoDatoTemp, nombreTemp, valorTemp;
+   Identificador identificadores;
+   static Token modificador;
+   static Token tipoDato;
 	public static void main(String[] args) throws ParseException, FileNotFoundException
 	{
 		try
 		{
-			lexer analizador=new lexer(new FileInputStream("src/prueba.txt"));
+		  
+			lexer analizador=new lexer(new FileInputStream("C:\\Users\\Power\\eclipse-workspace\\ProyectoAutomatas\\src\\Analizador\\prueba.txt"));
 			//analizador.Start();
 			analizador.programa();
-			System.out.println("La cadena fué aceptada");
+			System.out.println("****************************************************************************************************");
+			System.out.println("La cadena fue aceptada");
+			System.out.println("Numero de Tokens:"+ tablaSimbolos.size());
+			System.out.println("****************************************************************************************************");
+	        System.out.println("Impresion de HashMap FINAL:");
+	        System.out.println("");
+			//Impresion Clase
+			int posclase=tablaSimbolos.size()-1;
+		System.out.println("Linea: "+tablaSimbolos.get(posclase).getPos()+" Nombre: "+tablaSimbolos.get(posclase).getNombre()+
+                        			", Tipo: "+tablaSimbolos.get(posclase).getTipo()+
+                        			", Uso: "+tablaSimbolos.get(posclase).getUso()+
+                        			", TipoDato: "+tablaSimbolos.get(posclase).getTipoDato()+
+                        			", Modificador: "+tablaSimbolos.get(posclase).getModificador()+
+                        			", Valor: "+tablaSimbolos.get(posclase).getValor());
+              //Impresion de los demas Tokens
+			  for ( int i = 0; i < tablaSimbolos.size()-1; i ++){
+                        	System.out.println("Linea: "+tablaSimbolos.get(i).getPos()+" Nombre: "+tablaSimbolos.get(i).getNombre()+
+                        			", Tipo: "+tablaSimbolos.get(i).getTipo()+
+                        			", Uso: "+tablaSimbolos.get(i).getUso()+
+                        			", TipoDato: "+tablaSimbolos.get(i).getTipoDato()+
+                        			", Modificador: "+tablaSimbolos.get(i).getModificador()+
+                        			", Valor: "+tablaSimbolos.get(i).getValor());
+                        }
+			
 		}
 		catch(ParseException e)
 		{
+		  
 			System.out.println(e.getMessage());
-			//system.out.println("Se han encontrado errores, falló al compilar");
+			//system.out.println("Se han encontrado errores, fall� al compilar");
 		}
 	}
 }
@@ -24,25 +62,23 @@ SKIP: {" " | "\t" | "\r" | "\n" }
 /* Palabras Reservadas */
 TOKEN :
 {
-< MODIFIER: "private" | "public"| "protected" >
+< MODIFICADOR: "private" | "public" | "protected" >
 | < CLASS: "class" >
-| < TYPE_SPECIFIER: "boolean" | "int"|"float" |"string" >
+| < TIPODATO: "boolean" | "int" | "double" | "string" >
 | < IF: "if" >
-| < WHILE: "while" >
-| < VOID: "void" >
-| < MAIN: "main" >
 | < ELSE: "else" >
-| < ELSEIF: "elseif" >
+| < ELSEIF: "else if" >
+| < WHILE: "while" >
 }
 
 /* Separadores */
 TOKEN :
 {
-  < PARENIZQ: "(" >
-| < PARENDER: ")" >
-| < LLAVEIZQ: "{" >
-| < LLAVEDER: "}" >
-| < SEMICOLON: ";" >
+  < PARENTESISIZQUIERDO: "(" >
+| < PARENTESISDERECHO: ")" >
+| < LLAVEIZQUIERDA: "{" >
+| < LLAVEDERECHA: "}" >
+| < PUNTOYCOMA: ";" >
 | < COMILLASDOBLES: "\""> 
 }
 
@@ -50,89 +86,213 @@ TOKEN :
 /* Operadores */
 TOKEN :
 {
-< ASSIGN: "=" >
-| < EXPRESSION: ">" | "<" | "==" | "<=" | ">=" | "!=" >
+  < ASIGNACION: "=" >
+| < EXPRESION: ">" | "<" | "==" | "<=" | ">=" | "!=" >
 | < MAS: "+" >
 | < MENOS: "-" >
-| <DIVISION:"/">
-| <MULTIPLICACION:"*">
 }
 
 /* Literales */
 TOKEN:
 {
-< INTEGER_LITERAL: ["1"-"9"] (["0"-"9"])* >
-|< BOOLEAN_LITERAL: "false" | "true" >
-|< FLOAT_LITERAL: ["0"-"9"]+["."] (["0"-"9"])+  >
-|< STRING_LITERAL: <COMILLASDOBLES> ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])["a"-"z","A"-"Z","0"-"9"," ",":",";","."]*> <COMILLASDOBLES>>
+<INTEGER_LITERAL: ["1"-"9"] (["0"-"9"])* >
+|<BOOLEAN_LITERAL: "false" | "true" >
+|<DOUBLE_LITERAL : (["0"-"9"])+["."](["0"-"9"])+>
+|<STRING_LITERAL: <COMILLASDOBLES>(~["\n","\r"])*<COMILLASDOBLES>>
 }
 
 /* Identificador */
 TOKEN:
 {
-	< IDENTIFIER:(["a"-"z","_"])* >{identificadores.add(image.toString());}
+	< IDENTIFICADOR:(["a"-"z","_","0"-"9"])* >
 }
-/* operadores logicos*/
+
+/*===== Operadores Logicos  ======*/
+
 
 void programa():{}{
+  {
+    Token nombre;
+    Token modificador;
+  }
 	try{
-		<MODIFIER> <CLASS> <IDENTIFIER> <LLAVEIZQ> (variable_declaracion()| sentencia())* <LLAVEDER>
+	modificador=<MODIFICADOR> <CLASS> nombre=<IDENTIFICADOR> <LLAVEIZQUIERDA> (LOOKAHEAD(3)sentencia())* <LLAVEDERECHA>
+	{
+	 Identificador temp=new Identificador("","","","","","",0);
+	  temp.setTipo("Clase");
+      temp.setUso("Declaracion");
+      temp.setTipoDato("No Aplica");
+	  temp.setNombre(nombre.image);
+	  temp.setModificador(modificador.image);
+	  temp.setValor("No aplica");
+	  temp.setPos(modificador.beginLine);
+	  tablaSimbolos.put(pos,temp);
+	  pos++;
+	}  
+		
 	}catch(ParseException e){
 		System.out.println("Error de Sintaxis");
 		System.out.println(e.toString());
+		
 	}
 	
 }
-/*Métodos para field_declaracion*/
-void field_declaracion():{}{
-	variable_declaracion()
+/*M�todos para field_declaration*/
+void field_declaration():{}{
+	variable_declaration()
 }
 
-void variable_declaracion():{}{
-	<MODIFIER> type() variable_declarator()<SEMICOLON>
+void variable_declaration():{
+	
+  }{
+	modificador=<MODIFICADOR> tipoDato=type() variable_declarator()<PUNTOYCOMA>
+	{
+	  Identificador tempgeneral=new Identificador("","","","","","",0);
+	  //System.out.print(tipo.image+ " ");
+	  //System.out.print(modificador.image+ " ");
+	   tipoDatoTemp=tipoDato.image;
+	  modificadorTemp=modificador.image;
+	  tempgeneral.setPos(modificador.beginLine);
+	  tempgeneral.setTipo("Variable");
+	  tempgeneral.setUso("Declaracion");
+	  tempgeneral.setModificador(modificadorTemp);
+	  tempgeneral.setTipoDato(tipoDatoTemp);
+	  tempgeneral.setNombre(nombreTemp);
+	  tempgeneral.setValor(valorTemp);
+	   Validacion val=new Validacion();
+	   val.checarSiExisteToken(tempgeneral);
+	   val.checarTipoDato(tempgeneral);
+	   tablaSimbolos.put(pos,tempgeneral);
+	   pos++;
+	   
+	  //System.out.println("*************");
+	  }
+	  
 }
 
-void type():{}{
-	<TYPE_SPECIFIER>
+Token type():{
+	Token tipo;
+  }{
+	tipo=<TIPODATO>
+	{
+	  return tipo;
+	}
 }
+
 
 void variable_declarator():{}{
-	<IDENTIFIER> <ASSIGN> (<INTEGER_LITERAL> | <BOOLEAN_LITERAL> | <FLOAT_LITERAL> | <STRING_LITERAL> )
-}
+  {
+  Token identificador;
+  Token valor;
+  } 
+	identificador=<IDENTIFICADOR> <ASIGNACION> (valor=<INTEGER_LITERAL> | valor=<BOOLEAN_LITERAL> | valor=<DOUBLE_LITERAL> | valor=<STRING_LITERAL>)
+	{
+	   //System.out.print(identificador.image + " ");
+	   //System.out.print(valor.image + " ");
+	   nombreTemp=identificador.image;
+	   valorTemp=valor.image;
 
+	}
+}	
+
+void modificacion_variable():{}{
+  {
+  Token identificador;
+  Token valor;
+  }
+	identificador=<IDENTIFICADOR> <ASIGNACION> (valor=<INTEGER_LITERAL> | valor=<BOOLEAN_LITERAL> | valor=<DOUBLE_LITERAL> | valor=<STRING_LITERAL>)<PUNTOYCOMA>
+	{
+	  String identificadorvar=identificador.image;
+	  String valorvar=valor.image;
+	Validacion val=new Validacion();
+	val.asignarvariabledentro(identificadorvar,valorvar, identificador.beginLine);
+	
+}
+}	
 /*Metodos para sentencia*/
 void sentencia():{}{
-	variable_declaracion() 
-	| if_sentencia() 
-	| while_sentencia()
-	| for_sentencia()
+	variable_declaration()|if_todo()|while_sentencia()|modificacion_variable()
 }
+
+void if_todo(): { } {
+	<IF>if_sentencia()(else_if_sentencia())* [else_sentencia()]
+}
+
 void if_sentencia():{}{
-	<IF> <PARENIZQ> <PARENDER> <LLAVEIZQ> sentencia()<LLAVEDER>(else_sentencia()| sentencia()| elseif())*
+	<PARENTESISIZQUIERDO>expression()<PARENTESISDERECHO> <LLAVEIZQUIERDA> (sentencia())* <LLAVEDERECHA>
 }
+
 void else_sentencia():{}{
-	<ELSE><LLAVEIZQ> expresion() <LLAVEDER> | <ELSEIF> <PARENIZQ> A() <PARENDER> <LLAVEIZQ> sentencia() <LLAVEDER>
+	<ELSE><LLAVEIZQUIERDA> (sentencia())* <LLAVEDERECHA>
 }
-vod elseif(){}{
-	<ELSEIF><LLAVEIZQ> expresion()<LLAVEDER> sentencia()
+void else_if_sentencia():{}{
+	<ELSEIF>if_sentencia()
 }
-//fin de la sentencia if
 
-//sentencia while
 void while_sentencia():{}{
-	<WHILE> <PARENIZQ> expression() <PARENDER> <LLAVEIZQ> expresion <LLAVEDER> sentencia()
+	<WHILE><PARENTESISIZQUIERDO> expression() <PARENTESISDERECHO><LLAVEIZQUIERDA>(sentencia())*<LLAVEDERECHA>
 }
 
-void expresion():{}{
-	testing_expresion()
+void expression():{}{
+	testing_expression()
 }
 
-void testing_expresion():{}{
-	(<INTEGER_LITERAL> | <IDENTIFIER>) <EXPRESSION> (<INTEGER_LITERAL> | <IDENTIFIER>)
+void testing_expression():{}{
+  {
+   Token nombrecomparacion1=null;
+   Token nombrecomparacion2=null;
+   Token expresion;
+   Token valor1=null;
+   Token valor2=null;
+  }
+	(valor1=<INTEGER_LITERAL> | nombrecomparacion1=<IDENTIFICADOR> | valor1=<DOUBLE_LITERAL> | valor1=<BOOLEAN_LITERAL>) expresion=<EXPRESION> (valor2=<INTEGER_LITERAL> | nombrecomparacion2=<IDENTIFICADOR> |valor2= <DOUBLE_LITERAL>| valor2=<BOOLEAN_LITERAL>)
+	{
+	 Identificador tempgeneral=new Identificador("","","","","","",0);
+	  
+     Validacion val=new Validacion();
+	 if(nombrecomparacion1==null && nombrecomparacion2==null) {
+	 String a=valor1.image;
+     String b=valor2.image;
+     tempgeneral.setPos(valor1.beginLine);
+     val.checarComparacionValores(a,b, valor1.beginLine);
+	 }
+	 if(nombrecomparacion1!=null && nombrecomparacion2==null) {
+	 String valtemp=nombrecomparacion1.image;
+	 String valtemp2=valor2.image;
+	 tempgeneral.setPos(nombrecomparacion1.beginLine);
+     val.obtenerDatoComparacion(valtemp,valtemp2, nombrecomparacion1.beginLine);
+	 }
+	 if(nombrecomparacion1==null && nombrecomparacion2!=null) {
+	  String valtemp=nombrecomparacion2.image;
+	 String valtemp2=valor1.image;
+	 tempgeneral.setPos(nombrecomparacion2.beginLine);
+	 val.obtenerDatoComparacion2(valtemp,valtemp2,nombrecomparacion2.beginLine);
+	 }
+     if(nombrecomparacion1!=null && nombrecomparacion2!=null) {
+	  String valtemp=nombrecomparacion1.image;
+	 String valtemp2=nombrecomparacion2.image;
+	 tempgeneral.setPos(nombrecomparacion1.beginLine);
+	 val.obtenerDatoComparacion3(valtemp,valtemp2, nombrecomparacion1.beginLine);
+	 }
+     
+	 if(nombrecomparacion1!=null) {
+     tempgeneral.setNombre(nombrecomparacion1.image);
+     tempgeneral.setTipo("Variable");
+     tempgeneral.setTipoDato("Comparacion: "+expresion.image+"  ");
+	 }else {
+     tempgeneral.setNombre("No hay variables");
+     tempgeneral.setTipoDato("Comparacion: "  +expresion.image+"  ");
+	 } 
+     tempgeneral.setUso("Comparacion");
+     
+     
+     
+     //System.out.println(a);
+    
+	    //val.checarComparacionValores(a,b);
+
+     tablaSimbolos.put(pos,tempgeneral);
+	 pos++;
+	}
 }
-void tipodedato(){}{
-	 <INTEGER_LITERAL>
-	|<BOOLEAN_LITERAL>
-	|<STRING_LITERAL>
-	|<FLOAT_LITERAL>
-}
+
