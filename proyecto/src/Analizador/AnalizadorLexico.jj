@@ -22,12 +22,12 @@ class lexer
 			lexer analizador=new lexer(new FileInputStream("C:\\Users\\Power\\eclipse-workspace\\ProyectoAutomatas\\src\\Analizador\\prueba.txt"));
 			//analizador.Start();
 			analizador.programa();
-			System.out.println("-----------------------------------------------------------------------------------------------------");
-			System.out.println("La cadena se acepto");
+			System.out.println("****************************************************************************************************");
+			System.out.println("La cadena fue aceptada");
 			System.out.println("Numero de Tokens:"+ tablaSimbolos.size());
-			System.out.println("-----------------------------------------------------------------------------------------------------");
-	        System.out.println("Impresion final:");
-	        System.out.println(" ");
+			System.out.println("****************************************************************************************************");
+	        System.out.println("Impresion de HashMap FINAL:");
+	        System.out.println("");
 			//Impresion Clase
 			int posclase=tablaSimbolos.size()-1;
 		System.out.println("Linea: "+tablaSimbolos.get(posclase).getPos()+" Nombre: "+tablaSimbolos.get(posclase).getNombre()+
@@ -36,7 +36,7 @@ class lexer
                         			", TipoDato: "+tablaSimbolos.get(posclase).getTipoDato()+
                         			", Modificador: "+tablaSimbolos.get(posclase).getModificador()+
                         			", Valor: "+tablaSimbolos.get(posclase).getValor());
-              //Impresion de los Tokens
+              //Impresion de los demas Tokens
 			  for ( int i = 0; i < tablaSimbolos.size()-1; i ++){
                         	System.out.println("Linea: "+tablaSimbolos.get(i).getPos()+" Nombre: "+tablaSimbolos.get(i).getNombre()+
                         			", Tipo: "+tablaSimbolos.get(i).getTipo()+
@@ -51,14 +51,15 @@ class lexer
 		{
 		  
 			System.out.println(e.getMessage());
+			//system.out.println("Se han encontrado errores, fall� al compilar");
 		}
 	}
 }
 PARSER_END(lexer)
-/* Skips */
+/* Ignorados */
 SKIP: {" " | "\t" | "\r" | "\n" }
 
-/* Palabras reservadas */
+/* Palabras Reservadas */
 TOKEN :
 {
 < MODIFICADOR: "private" | "public" | "protected" >
@@ -73,10 +74,10 @@ TOKEN :
 /* Separadores */
 TOKEN :
 {
-  < PARENIZQ: "(" >
-| < PARENDER: ")" >
-| < LLAVIZQ: "{" >
-| < LLAVEDER: "}" >
+  < PARENTESISIZQUIERDO: "(" >
+| < PARENTESISDERECHO: ")" >
+| < LLAVEIZQUIERDA: "{" >
+| < LLAVEDERECHA: "}" >
 | < PUNTOYCOMA: ";" >
 | < COMILLASDOBLES: "\""> 
 }
@@ -106,13 +107,16 @@ TOKEN:
 	< IDENTIFICADOR:(["a"-"z","_","0"-"9"])* >
 }
 
+/*===== Operadores Logicos  ======*/
+
+
 void programa():{}{
   {
     Token nombre;
     Token modificador;
   }
 	try{
-	modificador=<MODIFICADOR> <CLASS> nombre=<IDENTIFICADOR> <LLAVIZQ> (LOOKAHEAD(3)sentencia())* <LLAVEDER>
+	modificador=<MODIFICADOR> <CLASS> nombre=<IDENTIFICADOR> <LLAVEIZQUIERDA> (LOOKAHEAD(3)sentencia())* <LLAVEDERECHA>
 	{
 	 Identificador temp=new Identificador("","","","","","",0);
 	  temp.setTipo("Clase");
@@ -133,7 +137,7 @@ void programa():{}{
 	}
 	
 }
-/*Metodos para field_declaration*/
+/*M�todos para field_declaration*/
 void field_declaration():{}{
 	variable_declaration()
 }
@@ -161,7 +165,7 @@ void variable_declaration():{
 	   tablaSimbolos.put(pos,tempgeneral);
 	   pos++;
 	   
-	  
+	  //System.out.println("*************");
 	  }
 	  
 }
@@ -215,18 +219,18 @@ void if_todo(): { } {
 }
 
 void if_sentencia():{}{
-	<PARENIZQ>expression()<PARENDER> <LLAVIZQ> (sentencia())* <LLAVEDER>
+	<PARENTESISIZQUIERDO>expression()<PARENTESISDERECHO> <LLAVEIZQUIERDA> (sentencia())* <LLAVEDERECHA>
 }
 
 void else_sentencia():{}{
-	<ELSE><LLAVIZQ> (sentencia())* <LLAVEDER>
+	<ELSE><LLAVEIZQUIERDA> (sentencia())* <LLAVEDERECHA>
 }
 void else_if_sentencia():{}{
 	<ELSEIF>if_sentencia()
 }
 
 void while_sentencia():{}{
-	<WHILE><PARENIZQ> expression() <PARENDER><LLAVIZQ>(sentencia())*<LLAVEDER>
+	<WHILE><PARENTESISIZQUIERDO> expression() <PARENTESISDERECHO><LLAVEIZQUIERDA>(sentencia())*<LLAVEDERECHA>
 }
 
 void expression():{}{
