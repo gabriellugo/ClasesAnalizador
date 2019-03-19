@@ -19,7 +19,7 @@ class lexer
 		try
 		{
 		  
-			lexer analizador=new lexer(new FileInputStream("C:\Users\gabri\OneDrive\Documentos\automatas\ClasesAnalizador"));
+			lexer analizador=new lexer(new FileInputStream("C:\\Users\\Power\\eclipse-workspace\\ProyectoAutomatas\\src\\Analizador\\prueba.txt"));
 			//analizador.Start();
 			analizador.programa();
 			System.out.println("-----------------------------------------------------------------------------------------------------");
